@@ -12,7 +12,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-             flutter-version: '3.41.9' # Updated to a version that meets the project requirement
+          flutter-version: '3.41.9'
           channel: stable
 
       - name: Clean project
@@ -36,7 +36,6 @@ jobs:
       - name: Build and Package IPA
         run: |
           flutter build ipa --release --no-codesign
-          # The IPA file will be located at build/ios/ipa/Runner.ipa
 
       - name: Upload IPA
         uses: actions/upload-artifact@v4
