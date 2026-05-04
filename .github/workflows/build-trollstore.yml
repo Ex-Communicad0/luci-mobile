@@ -1,15 +1,11 @@
 name: Build for TrollStore
 
 on:
-  workflow_dispatch:  # This creates the manual Run button
-  push:  # Also runs when you push code (optional)
-    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: macos-latest
-    permissions:
-      contents: write  # Allows uploading the IPA
     
     steps:
       - name: Checkout code
@@ -18,25 +14,23 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.5'
+          flutter-version: '3.27.4'  # Updated to newer version
           channel: stable
       
       - name: Install dependencies
         run: flutter pub get
       
-      - name: Build unsigned iOS app
-        run: |
-          flutter build ios --release --no-codesign
+      - name: Build iOS
+        run: flutter build ios --release --no-codesign
       
-      - name: Create IPA for TrollStore
+      - name: Create IPA
         run: |
           mkdir -p Payload
           cp -R build/ios/iphoneos/Runner.app Payload/
-          zip -r luci-mobile-trollstore.ipa Payload
+          zip -r luci-trollstore.ipa Payload
       
-      - name: Upload IPA as Artifact
+      - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: Luci-Mobile-TrollStore
-          path: luci-mobile-trollstore.ipa
-          compression-level: 0
+          path: luci-trollstore.ipa
