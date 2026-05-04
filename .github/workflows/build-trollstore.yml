@@ -27,18 +27,20 @@ jobs:
           pod install --repo-update
           cd ..
 
-      - name: Setup Keychain for Unsigned Build
-        run: |
-          security create-keychain -p temp build.keychain
-          security default-keychain -s build.keychain
-          security unlock-keychain -p temp build.keychain
+      - name: Build iOS (no codesign)
+        run: flutter build ios --release --no-codesign
 
-      - name: Build and Package IPA
+      - name: Package IPA for TrollStore
         run: |
-          flutter build ipa --release --no-codesign
+          mkdir -p build/ios/ipa/Payload
+          cp -r build/ios/iphoneos/Runner.app build/ios/ipa/Payload/
+          cd build/ios/ipa
+          zip -r --symlinks ../Runner.ipa Payload/
+          cd ../../..
+          ls -lh build/ios/Runner.ipa
 
       - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
           name: Luci-Mobile-TrollStore
-          path: build/ios/ipa/Runner.ipa
+          path: build/ios/Runner.ipa
