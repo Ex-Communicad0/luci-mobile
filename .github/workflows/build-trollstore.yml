@@ -1,36 +1,45 @@
-name: Build for TrollStore
-
+name: Build for TrollStore (Debug)
 on:
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: macos-latest
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.27.4'  # Updated to newer version
+          flutter-version: '3.32.5' # Updated to a version that meets the project requirement
           channel: stable
-      
+
+      - name: Clean project
+        run: flutter clean
+
       - name: Install dependencies
         run: flutter pub get
-      
-      - name: Build iOS
-        run: flutter build ios --release --no-codesign
-      
-      - name: Create IPA
+
+      - name: Install CocoaPods dependencies
         run: |
-          mkdir -p Payload
-          cp -R build/ios/iphoneos/Runner.app Payload/
-          zip -r luci-trollstore.ipa Payload
-      
-      - name: Upload
+          cd ios
+          pod install --repo-update
+          cd ..
+
+      - name: Setup Keychain for Unsigned Build
+        run: |
+          security create-keychain -p temp build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p temp build.keychain
+
+      - name: Build and Package IPA
+        run: |
+          flutter build ipa --release --no-codesign
+          # The IPA file will be located at build/ios/ipa/Runner.ipa
+
+      - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
           name: Luci-Mobile-TrollStore
-          path: luci-trollstore.ipa
+          path: build/ios/ipa/Runner.ipa
